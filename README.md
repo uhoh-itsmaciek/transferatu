@@ -47,6 +47,7 @@ its contents:
     {
       "Effect": "Allow",
       "Action": "s3:*",
+      "Principal": "*",
       "Resource": [
         "arn:aws:s3:::<your-transferatu-bucket>",
         "arn:aws:s3:::<your-transferatu-bucket>/*"
