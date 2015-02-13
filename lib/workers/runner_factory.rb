@@ -91,6 +91,12 @@ module Transferatu
       drain_stream(@stderr, logger)
     end
 
+    # If the thread is running, process.wait has not returned,
+    # and the process is alive
+    def alive?
+      @wthr.value
+    end
+
     # Wait for the process to finish. Returns the resulting
     # Process::Status of the process.
     def wait
@@ -188,6 +194,10 @@ module Transferatu
       @logger.call "pg_dump done"
       result.success? == true
     end
+
+    def alive?
+      @future.alive?
+    end
   end
 
   # A Sink that uploads to S3
@@ -223,6 +233,10 @@ module Transferatu
       result = @future.wait
       @logger.call "upload done"
       result.success? == true
+    end
+
+    def alive?
+      @future.alive?
     end
   end
 
@@ -295,6 +309,10 @@ module Transferatu
         return false
       end
     end
+
+    def alive?
+      @future.alive?
+    end
   end
 
   # A source that runs Gof3r to fetch from an S3 URL
@@ -329,6 +347,10 @@ module Transferatu
       result = @future.wait
       @logger.call "download done"
       result.success? == true
+    end
+
+    def alive?
+      @future.alive?
     end
   end
 end
