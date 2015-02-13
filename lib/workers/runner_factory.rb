@@ -94,7 +94,7 @@ module Transferatu
     # If the thread is running, process.wait has not returned,
     # and the process is alive
     def alive?
-      @wthr.value
+      @wthr.alive?
     end
 
     # Wait for the process to finish. Returns the resulting
