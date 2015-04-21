@@ -39,7 +39,7 @@ module Transferatu
   # expose progress, and propagate cancelations.
   class DataMover
 
-    CHUNK_SIZE = 8 * 1024
+    CHUNK_SIZE = 4 * 1024 * 1024
 
     def initialize(source, sink)
       @lock = Mutex.new
@@ -50,7 +50,10 @@ module Transferatu
 
     # Number of bytes read from the Source and written to the Sink
     def processed_bytes
-      @lock.synchronize { @processed_bytes }
+      puts "reader acquiring lock for #processed_bytes"
+      result = @lock.synchronize { @processed_bytes }
+      puts "reader done"
+      result
     end
 
     # Cancel a transfer
@@ -72,7 +75,9 @@ module Transferatu
         begin
           until source_stream.eof?
             copied = IO.copy_stream(source_stream, sink_stream, CHUNK_SIZE)
+            puts "writer acquiring lock for #processed_bytes"
             @lock.synchronize { @processed_bytes += copied }
+            puts "writer done"
           end
         rescue Errno::EPIPE
           # Writing failed because the sink died: we trust the sink to
