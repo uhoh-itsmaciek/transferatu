@@ -1,5 +1,7 @@
 module Initializer
   def self.run
+    Thread.abort_on_exception = true
+
     require_config
     require_lib
     require_initializers
