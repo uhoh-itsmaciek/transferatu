@@ -35,22 +35,30 @@ module Transferatu
       # make sure we give the progress thread its own copy
       xfer_id = transfer.uuid
       progress_thr = Thread.new do
-        xfer = Transfer[xfer_id]
-        while xfer.in_progress? do
-          puts "marking transfer progress"
-          xfer.mark_progress(runner.processed_bytes)
-          # Nothing to change, but we want to update updated_at to
-          # report in
-          puts "marking worker progress"
-          @status.save
-          sleep 5
-          xfer.reload
-        end
-        if xfer.canceled?
-          runner.cancel
-        else
-          # Flag final progress
-          xfer.mark_progress(runner.processed_bytes)
+        begin
+          xfer = Transfer[xfer_id]
+          while xfer.in_progress? do
+            puts "marking transfer progress"
+            xfer.mark_progress(runner.processed_bytes)
+            # Nothing to change, but we want to update updated_at to
+            # report in
+            puts "marking worker progress"
+            @status.save
+            sleep 5
+            puts "reloading"
+            xfer.reload
+          end
+          puts "transfer no longer in progress"
+          if xfer.canceled?
+            puts "was canceled; flagging"
+            runner.cancel
+          else
+            puts "marking final progress"
+            # Flag final progress
+            xfer.mark_progress(runner.processed_bytes)
+          end
+        rescue StandardError => e
+          puts "failed to update transfer due to #{e.class}: #{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
 
