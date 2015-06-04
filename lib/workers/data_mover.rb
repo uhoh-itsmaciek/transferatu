@@ -71,8 +71,8 @@ module Transferatu
     # if the transfer completes successfully, and false if it fails or
     # if it is canceled.
     def run_transfer
-      source_result = nil
-      sink_result = nil
+      source_succeeded = false
+      sink_succeeded = false
       begin
         source_stream = @source.run_async
         sink_stream = @sink.run_async
@@ -90,19 +90,27 @@ module Transferatu
           # notice it failed and log and update transfer status
           # accordingly.
         end
+      rescue StandardError => e
+        # report any unexpected errors; the ensure below will fail the transfer
+        @source.cancel if @source.alive?
+        @sink.cancel if @sink.alive?
+        Rollbar.error(e)
       ensure
-        finished_first = [ @source, @sink ].reject(&:alive?).first
-        unless finished_first.nil?
-          first_result = finished_first.wait
-          unless first_result
-            other =  [ @source, @sink ].reject { |p| p == finished_first }
-            other.cancel if other && other.alive?
+        if !@source.alive? && @sink.alive?
+          source_succeeded = @source.wait if source_stream
+          if !source_succeeded
+            @sink.cancel
+          end
+        elsif !@sink.alive? && @source.alive?
+          sink_succeeded = @sink.wait if sink_stream
+          if !sink_succeeded
+            @source.cancel
           end
         end
-        source_result = @source.wait if source_stream
-        sink_result = @sink.wait if sink_stream
+        source_succeeded ||= @source.wait if source_stream
+        sink_succeeded ||= @sink.wait if sink_stream
       end
-      source_result && sink_result
+      source_succeeded && sink_succeeded
     end
   end
 end

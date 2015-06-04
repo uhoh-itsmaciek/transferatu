@@ -200,7 +200,7 @@ module Transferatu
     end
 
     def alive?
-      @future.alive?
+      @future && @future.alive?
     end
   end
 
