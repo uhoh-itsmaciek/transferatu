@@ -40,4 +40,19 @@ module Clockwork
   every(4.hours, "mark-restart") do
     Transferatu::AppStatus.mark_update
   end
+
+  every(1.hour, "run-purger") do
+    loop do
+      to_purge = Transferatu::Transfer.purgeable.limit(100).all
+      break if to_purge.empty?
+
+      to_purge.each do |xfer|
+        begin
+          Transferatu::Mediators::Transfers::Purger.run(transfer: xfer)
+        rescue StandardError => e
+          Rollbar.error(e, transfer_id: xfer.uuid)
+        end
+      end
+    end
+  end
 end
