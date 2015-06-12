@@ -78,7 +78,7 @@ module Transferatu
         sink_stream = @sink.run_async
 
         begin
-          while !source_stream.eof? && @source.alive? && @sink.alive?
+          while !source_stream.eof? && @sink.alive?
             copied = IO.copy_stream(source_stream, sink_stream, CHUNK_SIZE)
             @lock.synchronize { @processed_bytes += copied }
           end
@@ -90,25 +90,25 @@ module Transferatu
           # notice it failed and log and update transfer status
           # accordingly.
         end
+
+        sink_succeeded = @sink.wait if sink_stream
+
+        if @source.alive?
+          @source.cancel
+          # N.B.: we don't care if the source succeeded
+          @source.wait if source_stream
+        else
+          source_succeeded = @source.wait if source_stream
+        end
       rescue StandardError => e
         # report any unexpected errors; the ensure below will fail the transfer
-        @source.cancel if @source.alive?
-        @sink.cancel if @sink.alive?
         Rollbar.error(e)
       ensure
-        if !@source.alive? && @sink.alive?
-          source_succeeded = @source.wait if source_stream
-          if !source_succeeded
-            @sink.cancel
-          end
-        elsif !@sink.alive? && @source.alive?
-          sink_succeeded = @sink.wait if sink_stream
-          if !sink_succeeded
-            @source.cancel
-          end
-        end
-        source_succeeded ||= @source.wait if source_stream
-        sink_succeeded ||= @sink.wait if sink_stream
+        @source.cancel if @source.alive?
+        @sink.cancel if @sink.alive?
+        # make sure we wait to avoid zombies
+        @source.wait
+        @sink.wait
       end
       source_succeeded && sink_succeeded
     end
