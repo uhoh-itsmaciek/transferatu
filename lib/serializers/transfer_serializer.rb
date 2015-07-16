@@ -36,6 +36,7 @@ module Transferatu::Serializers
         source_bytes:    transfer.source_bytes,
         processed_bytes: transfer.processed_bytes,
         succeeded:       transfer.succeeded,
+        warnings:        (transfer.warnings || 0),
 
         created_at:  transfer.created_at,
         started_at:  transfer.started_at,

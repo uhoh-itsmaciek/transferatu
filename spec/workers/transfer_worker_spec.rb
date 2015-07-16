@@ -21,6 +21,9 @@ module Transferatu
           sleep @dur
           @result
         end
+        def warnings
+          0
+        end
       end
 
       SLOW_RUNTIME = 0.1

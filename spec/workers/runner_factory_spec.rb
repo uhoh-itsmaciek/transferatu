@@ -507,15 +507,17 @@ module Transferatu
           end
           sink.run_async
           expect(sink.wait).to be true
+          expect(sink.warnings).to be 0
         end
-        it "returns false when process fails with comment errors not matching warning count" do
+        it "returns true when process fails with comment errors not matching warning count" do
           expect(future).to receive(:wait).and_return(failure)
           expect(future).to receive(:drain_stderr) do |l|
             l.call "Command was: COMMENT ON EXTENSION plpgsql IS 'hello'"
             l.call "WARNING: errors ignored on restore: 3"
           end
           sink.run_async
-          expect(sink.wait).to be false
+          expect(sink.wait).to be true
+          expect(sink.warnings).to be 3
         end
         it "returns true when process fails with PL/pgSQL failure matching warning count" do
           expect(future).to receive(:wait).and_return(failure)
@@ -525,6 +527,7 @@ module Transferatu
           end
           sink.run_async
           expect(sink.wait).to be true
+          expect(sink.warnings).to be 0
         end
         it "returns true when process fails with alternate PL/pgSQL failure matching warning count" do
           expect(future).to receive(:wait).and_return(failure)
@@ -534,6 +537,7 @@ module Transferatu
           end
           sink.run_async
           expect(sink.wait).to be true
+          expect(sink.warnings).to be 0
         end
         it "returns false when process fails with PL/pgSQL failure not matching warning count" do
           expect(future).to receive(:wait).and_return(failure)
@@ -542,7 +546,8 @@ module Transferatu
             l.call "WARNING: errors ignored on restore: 2"
           end
           sink.run_async
-          expect(sink.wait).to be false
+          expect(sink.wait).to be true
+          expect(sink.warnings).to be 2
         end
         it "returns true when the process fails with comment plus PL/pgSQL errors matching warning count" do
           expect(future).to receive(:wait).and_return(failure)
@@ -553,18 +558,19 @@ module Transferatu
           end
           sink.run_async
           expect(sink.wait).to be true
+          expect(sink.warnings).to be 0
         end
         it "returns false when the process fails otherwise" do
           expect(future).to receive(:wait).and_return(failure)
           sink.run_async
-          expect(sink.wait).to be true
+          expect(sink.wait).to be false
         end
         it "returns false when the process is signaled" do
           expect(future).to receive(:wait).and_return(signaled)
           sink.run_async
           expect(sink.wait).to be false
         end
-        it "returns false when process is signaled and has comment errors matching warning count" do
+        it "returns true when process is signaled and has comment errors matching warning count" do
           expect(future).to receive(:wait).and_return(signaled)
           expect(future).to receive(:drain_stderr) do |l|
             l.call "Command was: COMMENT ON EXTENSION plpgsql IS 'it is okay i guess'"
@@ -572,7 +578,8 @@ module Transferatu
             l.call "WARNING: errors ignored on restore: 2"
           end
           sink.run_async
-          expect(sink.wait).to be false
+          expect(sink.wait).to be true
+          expect(sink.warnings).to be 0
         end
       end
 
