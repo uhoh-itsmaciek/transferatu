@@ -66,6 +66,7 @@ module Transferatu
           else
             transfer.fail
           end
+          transfer.update(warnings: runner.warnings) if runner.warnings
         end
       rescue Transfer::AlreadyFailed
         # ignore; if the transfer was canceled or otherwise failed

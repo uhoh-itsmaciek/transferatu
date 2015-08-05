@@ -248,6 +248,10 @@ module Transferatu
     def alive?
       @future.alive?
     end
+
+    def warnings
+      0
+    end
   end
 
   # A Sink that restores a custom-format Postgres dump into a database
@@ -285,7 +289,7 @@ module Transferatu
       # a localized pg_restore), but safer.
       @failed_extension_comment_count = 0
       @failed_plpgsql_create = false
-      @pg_restore_error_count = 0
+      @pg_restore_error_count = nil
       @future.drain_stderr(->(line) do
                              if line =~ /\ACommand was: COMMENT ON EXTENSION /
                                @failed_extension_comment_count += 1
@@ -304,26 +308,40 @@ module Transferatu
     end
 
     def wait
-      return @succeeded unless @succeeded.nil?
+      return @succeeded if @complete
 
       @logger.call "waiting for restore to complete"
       result = @future.wait
       @logger.call "restore done"
-      @succeeded = result.success? == true
 
-      if result.exitstatus == 1
+      @complete = true
+      @warnings = 0
+
+      if result.exitstatus == 0
+        @succeeded = true
+      elsif !@pg_restore_error_count.nil? 
+        # Program exited but completed successfully with warnings
+        @succeeded = true
+
         expected_err_count = @failed_extension_comment_count
-        if @failed_plpgsql_create
-          expected_err_count += 1
+        expected_err_count += 1 if @failed_plpgsql_create
+      
+        if expected_err_count != @pg_restore_error_count
+          @warnings = @pg_restore_error_count
         end
-        @succeeded = expected_err_count == @pg_restore_error_count
+      else
+        @succeeded = false
       end
 
-      return @succeeded
+      return @succeeded 
     end
 
     def alive?
       @future.alive?
+    end
+
+    def warnings
+      @warnings
     end
   end
 

@@ -61,6 +61,10 @@ module Transferatu
       @lock.synchronize { @processed_bytes }
     end
 
+    def warnings  
+      @sink && @sink.warnings
+    end
+
     # Cancel a transfer
     def cancel
       @source.cancel
