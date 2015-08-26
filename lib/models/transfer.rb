@@ -36,12 +36,17 @@ EOF
       end
     end
 
-    def_dataset_method(:in_progress) do
-      self.where(Sequel.~(started_at: nil), canceled_at: nil, finished_at: nil)
-    end
-
-    def_dataset_method(:pending) do
-      self.where(started_at: nil, canceled_at: nil, finished_at: nil)
+    dataset_module do
+      def in_progress
+        self.where(Sequel.~(started_at: nil), canceled_at: nil, finished_at: nil)
+      end
+      def pending
+        self.where(started_at: nil, canceled_at: nil, finished_at: nil)
+      end
+      def purgeable(deleted_before: Time.now - 7.days)
+        self.where(to_type: 'gof3r', purged_at: nil)
+          .where { deleted_at < deleted_before }
+      end
     end
 
     # Flag transfer as canceled. Do nothing if the transfer has already finished.

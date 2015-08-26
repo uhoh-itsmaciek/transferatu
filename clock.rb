@@ -40,4 +40,24 @@ module Clockwork
   every(4.hours, "mark-restart") do
     Transferatu::AppStatus.mark_update
   end
+
+  every(1.hour, "run-purger") do
+    # TODO: move out to separate worker if this is not keeping up
+    started_at = Time.now
+    succeeded = 0
+    failed = 0
+    Transferatu::Transfer.purgeable.limit(1000).all.each do |xfer|
+      begin
+        Transferatu::Mediators::Transfers::Purger.run(transfer: xfer)
+        succeeded += 1
+      rescue StandardError => e
+        failed += 1
+        Rollbar.error(e, transfer_id: xfer.uuid)
+      end
+    end
+    duration = Time.now - started_at
+    Pliny.log(:"sample#purge_duration" => duration,
+              :"sample#purge_succeeded" => succeeded,
+              :"sample#purge_succeeded" => failed)
+  end
 end
