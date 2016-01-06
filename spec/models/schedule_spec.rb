@@ -28,19 +28,19 @@ describe Transferatu::Schedule do
     end
 
     it "omits schedules for this day but another time in this timezone" do
-      s = create(:schedule, hour: 14, dows: [ 3 ], timezone: 'UTC')
+      s = create(:schedule, hour: 2, dows: [ 3 ], timezone: 'UTC')
       scheds = Transferatu::Schedule.pending_for(scheduled_time).all
       expect(scheds).to be_empty
     end
 
     it "omits schedules for this day and time in another timezone" do
-      s = create(:schedule, hour: 15, dows: [ 3 ], timezone: 'America/Los_Angeles')
+      s = create(:schedule, hour: 17, dows: [ 3 ], timezone: 'America/Los_Angeles')
       scheds = Transferatu::Schedule.pending_for(scheduled_time).all
       expect(scheds).to be_empty
     end
 
     it "omits schedules for a different day at this time in this timezone" do
-      s = create(:schedule, hour: 15, dows: [ 4 ], timezone: 'UTC')
+      s = create(:schedule, hour: 17, dows: [ 4 ], timezone: 'UTC')
       scheds = Transferatu::Schedule.pending_for(scheduled_time).all
       expect(scheds).to be_empty
     end
