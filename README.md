@@ -82,7 +82,7 @@ set up the database, and scale up the clock process:
 $ git push heroku master
 ...
 $ heroku run bundle exec rake db:migrate
-$ heroku ps:scale clock=1
+$ heroku ps:scale clock=1 scheduler=1
 ```
 
 
