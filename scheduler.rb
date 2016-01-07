@@ -16,8 +16,10 @@ module Clockwork
     processor = Transferatu::ScheduleProcessor.new(resolver)
     manager =  Transferatu::ScheduleManager.new(processor)
 
+    scheduled_time = Time.now
+
     Pliny.log(task: 'run-scheduled-transfers', scheduled_for: scheduled_time) do
-      manager.run_schedules(Time.now, 250)
+      manager.run_schedules(scheduled_time, 250)
     end
   end
 end
