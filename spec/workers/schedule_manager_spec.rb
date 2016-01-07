@@ -24,14 +24,14 @@ module Transferatu
         [ sched1, sched2 ].each do |sched|
           expect(processor).to receive(:process).with(sched)
         end
-        manager.run_schedules(time)
+        manager.run_schedules(time, 250)
       end
 
       it "retries a schedule once if it fails" do
         expect(processor).to receive(:process).with(sched1).and_raise(StandardError)
         expect(processor).to receive(:process).with(sched1)
         expect(processor).to receive(:process).with(sched2)
-        manager.run_schedules(time)
+        manager.run_schedules(time, 250)
       end
 
       it "marks a schedule as executed, logs to group, and reports to Rollbar if it fails twice" do
@@ -45,7 +45,7 @@ module Transferatu
         expect(processor).to receive(:process).with(sched1).and_raise(StandardError).twice
         expect(processor).not_to receive(:process).with(sched1)
         expect(processor).to receive(:process).with(sched2)
-        manager.run_schedules(time)
+        manager.run_schedules(time, 250)
       end
     end
   end

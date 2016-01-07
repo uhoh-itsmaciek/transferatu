@@ -4,14 +4,10 @@ module Transferatu
       @processor = processor
     end
 
-    def run_schedules(schedule_time)
-      # limit the work to batches to avoid huge queries
-      schedules = next_batch(schedule_time)
-      until schedules.empty? do
-        Parallel.each(schedules, in_threads: 4) do |s|
-          process_schedule(s)
-        end
-        schedules = next_batch(schedule_time)
+    def run_schedules(schedule_time, batch_size)
+      schedules = Schedule.pending_for(schedule_time, limit: batch_size).all
+      Parallel.each(schedules, in_threads: 4) do |s|
+        process_schedule(s)
       end
     end
 
@@ -31,10 +27,6 @@ module Transferatu
           retry
         end
       end
-    end
-
-    def next_batch(time)
-      Schedule.pending_for(time, limit: 250).all
     end
   end
 end
