@@ -17,7 +17,7 @@ module Clockwork
     manager =  Transferatu::ScheduleManager.new(processor)
 
     Pliny.log(task: 'run-scheduled-transfers', scheduled_for: scheduled_time) do
-      manager.run_schedules(Time.now, batch_size: 250)
+      manager.run_schedules(Time.now, 250)
     end
   end
 end
