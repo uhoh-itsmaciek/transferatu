@@ -177,7 +177,8 @@ module Transferatu
       dbname = uri.path[1..-1]
       @env = { "LD_LIBRARY_PATH" => "#{root}/lib", "PGPASSWORD" => uri.password }
       @cmd = command("#{root}/bin/pg_dump",
-                     opts.merge(username: uri.user,
+                     opts.merge(quote_all_identifiers: true,
+                                username: uri.user,
                                 host: uri.host,
                                 port: uri.port || 5432), dbname)
       @logger = logger
