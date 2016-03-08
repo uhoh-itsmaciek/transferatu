@@ -1,3 +1,4 @@
+require "net/ssh/gateway"
 module Transferatu
   class TransferWorker
 
@@ -6,13 +7,22 @@ module Transferatu
     end
 
     def perform(transfer)
+      t = transfer
+      maybe_tunnel(t.to_url, t.to_bastion_host, t.to_bastion_key) do |to_url|
+        maybe_tunnel(t.from_url, t.from_bastion_host, t.from_bastion_key) do |from_url|
+          perform_inside_tunnel(transfer, from_url, to_url)
+        end
+      end
+    end
+
+    def perform_inside_tunnel(transfer, from_url, to_url)
       @status.update(transfer: transfer)
 
       # TODO: break this out into an Executor mediator?
 
       runner = nil
       begin
-        runner = RunnerFactory.runner_for(transfer)
+        runner = RunnerFactory.runner_for(transfer, from_url, to_url)
         # We don't want to make the failure messages here too
         # explicit, since they may pertain to the internal details of
         # the service and not be useful to end-users trying to
@@ -91,6 +101,31 @@ module Transferatu
     end
 
     private
+
+    def maybe_tunnel(transfer_url, bastion_host, bastion_key)
+      if bastion_host && bastion_key && !bastion_host.empty? && !bastion_key.empty?
+        begin
+          uri = URI.parse(transfer_url)
+          gateway = Net::SSH::Gateway.new(bastion_host, 'bastion',
+            paranoid: false, timeout: 15, key_data: [bastion_key])
+          local_port = rand(65535 - 49152) + 49152
+          gateway.open(uri.host, uri.port, local_port) do |actual_local_port|
+            uri.host = 'localhost'
+            uri.port = actual_local_port
+            yield uri.to_s
+          end
+        rescue Errno::EADDRINUSE
+          # Get a new random port if a local binding was not possible.
+          gateway && gateway.shutdown!
+          gateway = nil
+          retry
+        ensure
+          gateway && gateway.shutdown!
+        end
+      else
+        yield(transfer_url)
+      end
+    end
 
     def fail_transfer(transfer, message, exception)
       transfer.fail

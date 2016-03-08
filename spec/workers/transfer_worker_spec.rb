@@ -42,7 +42,7 @@ module Transferatu
       end
 
       it "should record success in case of a successful transfer" do
-        expect(RunnerFactory).to receive(:runner_for).with(transfer).and_return(good_runner)
+        expect(RunnerFactory).to receive(:runner_for).with(transfer, transfer.from_url, transfer.to_url).and_return(good_runner)
         worker.perform(transfer)
         transfer.reload
         expect(transfer.in_progress?).to be false
@@ -52,7 +52,7 @@ module Transferatu
       end
 
       it "should record failure in case of a failed transfer" do
-        expect(RunnerFactory).to receive(:runner_for).with(transfer).and_return(bad_runner)
+        expect(RunnerFactory).to receive(:runner_for).with(transfer, transfer.from_url, transfer.to_url).and_return(bad_runner)
         worker.perform(transfer)
         transfer.reload
         expect(transfer.in_progress?).to be false

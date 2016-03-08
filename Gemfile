@@ -19,6 +19,8 @@ gem "sinatra-contrib", require: ["sinatra/namespace", "sinatra/reloader"]
 gem "sinatra-router"
 gem "sucker_punch"
 gem "parallel"
+gem "net-ssh"
+gem "net-ssh-gateway"
 
 # additional gems (not from template)
 gem "attr_secure", git: "https://github.com/deafbybeheading/attr_secure", branch: 'fernet-2.0-support-empty-values'

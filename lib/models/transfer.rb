@@ -17,6 +17,10 @@ module Transferatu
 
     attr_secure :from_url, :secret => Config.at_rest_fernet_secret
     attr_secure :to_url, :secret => Config.at_rest_fernet_secret
+    attr_secure :from_bastion_key, :secret => Config.at_rest_fernet_secret
+    attr_secure :from_bastion_host, :secret => Config.at_rest_fernet_secret
+    attr_secure :to_bastion_key, :secret => Config.at_rest_fernet_secret
+    attr_secure :to_bastion_host, :secret => Config.at_rest_fernet_secret
 
     def self.begin_next_pending
       self.db.transaction(isolation: :serializable) do

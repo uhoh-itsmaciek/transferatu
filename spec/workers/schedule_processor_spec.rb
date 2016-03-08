@@ -30,6 +30,10 @@ module Transferatu
                   to_type:   xfer_info["to_type"],
                   to_url:    xfer_info["to_url"],
                   to_name:   xfer_info["to_name"],
+                  from_bastion_host: xfer_info["from_bastion_host"],
+                  from_bastion_key: xfer_info["from_bastion_key"],
+                  to_bastion_host: nil,
+                  to_bastion_key: nil,
                   options:   xfer_info["options"])
           processor.process(schedule)
         end
