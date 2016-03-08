@@ -48,12 +48,12 @@ module Transferatu
               end
 
               if valid
-                runner = RunnerFactory.runner_for(transfer)
+                runner = RunnerFactory.runner_for(transfer, transfer.from_url, transfer.to_url)
                 %i(run_transfer cancel processed_bytes).each do |action|
                   expect(runner).to respond_to(action)
                 end
               else
-                expect { RunnerFactory.runner_for(transfer) }.to raise_error ArgumentError
+                expect { RunnerFactory.runner_for(transfer, transfer.from_url, transfer.to_url) }.to raise_error ArgumentError
               end
             end
           end

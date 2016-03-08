@@ -29,7 +29,12 @@ module Transferatu
                to_type:   data["to_type"],
                to_url:    data["to_url"],
                to_name:   data["to_name"],
-               options:   data["options"] || {})
+               from_bastion_host: data["from_bastion_host"],
+               from_bastion_key: data["from_bastion_key"],
+               to_bastion_host: nil,
+               to_bastion_key: nil,
+               options:  data["options"] || {},
+          )
         schedule.mark_executed
         Transferatu::Mediators::Schedules::Expirer
           .run(schedule: schedule, expire_at: Time.now)

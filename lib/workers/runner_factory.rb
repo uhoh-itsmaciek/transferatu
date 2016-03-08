@@ -3,7 +3,8 @@ require 'pgversion'
 
 module Transferatu
   class RunnerFactory
-    def self.runner_for(transfer)
+    def self.runner_for(transfer, from_url, to_url)
+
       from_type, to_type = transfer.from_type, transfer.to_type
 
       if from_type == 'gof3r' && to_type == 'gof3r'
@@ -14,11 +15,11 @@ module Transferatu
       logger = ThreadSafeLogger.new(transfer).method(:log)
       sink = case to_type
              when 'pg_restore'
-               to_version = PGVersion.parse(Sequel.connect(transfer.to_url) do |c|
+               to_version = PGVersion.parse(Sequel.connect(to_url) do |c|
                                               c.fetch("SELECT version()").get(:version)
                                             end)
                pg_root = "/app/bin/pg/#{to_version.major_minor}"
-               PGRestoreSink.new(transfer.to_url,
+               PGRestoreSink.new(to_url,
                                  opts: {
                                    no_owner: true,
                                    no_privileges: true,
@@ -28,7 +29,7 @@ module Transferatu
                                  root: pg_root,
                                  logger: logger)
              when 'gof3r'
-               Gof3rSink.new(transfer.to_url, logger: logger)
+               Gof3rSink.new(to_url, logger: logger)
              else
                raise ArgumentError, "Unkown transfer sink type: #{to_type}"
              end
@@ -39,10 +40,10 @@ module Transferatu
                  # override it if the source is of a higher version.
                  # This can be useful for upgrades and is necessary
                  # for downgrades.
-                 from_version = PGVersion.parse(Sequel.connect(transfer.from_url) do |c|
+                 from_version = PGVersion.parse(Sequel.connect(from_url) do |c|
                                                   c.fetch("SELECT version()").get(:version)
                                                 end)
-                 source_bytes = Sequel.connect(transfer.from_url) do |c|
+                 source_bytes = Sequel.connect(from_url) do |c|
                    c.fetch("SELECT pg_database_size(current_database()) AS size").get(:size)
                  end
                  transfer.update(source_bytes: source_bytes)
@@ -51,7 +52,7 @@ module Transferatu
                            else
                              "/app/bin/pg/#{to_version.major_minor}"
                            end
-                 PGDumpSource.new(transfer.from_url,
+                 PGDumpSource.new(from_url,
                                   opts: {
                                     no_owner: true,
                                     no_privileges: true,
@@ -61,9 +62,9 @@ module Transferatu
                                   root: pg_root,
                                   logger: logger)
                when 'gof3r'
-                 Gof3rSource.new(transfer.from_url, logger: logger)
+                 Gof3rSource.new(from_url, logger: logger)
                when 'htcat'
-                 HtcatSource.new(transfer.from_url, logger: logger)
+                 HtcatSource.new(from_url, logger: logger)
                else
                  raise ArgumentError, "Unkown transfer source type: #{from_type}"
                end

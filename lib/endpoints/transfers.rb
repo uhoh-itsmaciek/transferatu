@@ -51,6 +51,10 @@ module Transferatu::Endpoints
                to_type: data["to_type"],
                to_url: data["to_url"],
                to_name: data["to_name"],
+               from_bastion_host: data["from_bastion_host"],
+               from_bastion_key: data["from_bastion_key"],
+               to_bastion_host: data["to_bastion_host"],
+               to_bastion_key: data["to_bastion_key"],
                options: data["options"] || {},
                num_keep: data["num_keep"])
         respond serialize(transfer), status: 201

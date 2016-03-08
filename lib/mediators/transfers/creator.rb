@@ -6,6 +6,8 @@ module Transferatu
       def initialize(group:,
                      from_type:, from_url:, from_name: nil,
                      to_type:, to_url:, to_name: nil,
+                     from_bastion_host: nil, from_bastion_key: nil,
+                     to_bastion_host: nil, to_bastion_key: nil,
                      options:, schedule: nil, num_keep: nil)
         @group = group
         @from_type = from_type
@@ -14,6 +16,10 @@ module Transferatu
         @to_type = to_type
         @to_url = to_url
         @to_name = to_name
+        @from_bastion_host = from_bastion_host
+        @from_bastion_key = from_bastion_key
+        @to_bastion_host = to_bastion_host
+        @to_bastion_key = to_bastion_key
         @options = options
         @schedule = schedule
         @num_keep = num_keep
@@ -66,6 +72,8 @@ module Transferatu
           create_opts = { group: @group,
                           from_type: @from_type, from_url: @from_url, from_name: @from_name,
                           to_type: @to_type, to_url: @to_url, to_name: @to_name,
+                          from_bastion_host: @from_bastion_host, from_bastion_key: @from_bastion_key,
+                          to_bastion_host: @to_bastion_host, to_bastion_key: @to_bastion_key,
                           options: @options, schedule: @schedule }
           unless @num_keep.nil?
             create_opts.merge!(num_keep: @num_keep)
