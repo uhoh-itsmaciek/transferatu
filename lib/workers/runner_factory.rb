@@ -176,7 +176,9 @@ module Transferatu
     def initialize(url, opts: {}, logger:, root:)
       uri = URI.parse(url)
       dbname = uri.path[1..-1]
-      @env = { "LD_LIBRARY_PATH" => "#{root}/lib", "PGPASSWORD" => uri.password }
+      @env = { "LD_LIBRARY_PATH" => "#{root}/lib",
+               "PGPASSWORD" => uri.password,
+               "PGAPPNAME" => Config.pg_app_name }
       @cmd = command("#{root}/bin/pg_dump",
                      opts.merge(quote_all_identifiers: true,
                                 username: uri.user,
@@ -266,7 +268,9 @@ module Transferatu
     def initialize(url, opts: {}, logger:, root:)
       uri = URI.parse(url)
       dbname = uri.path[1..-1]
-      @env = { "LD_LIBRARY_PATH" => "#{root}/lib", "PGPASSWORD" => uri.password }
+      @env = { "LD_LIBRARY_PATH" => "#{root}/lib",
+               "PGPASSWORD" => uri.password,
+               "PGAPPNAME" => Config.pg_app_name }
       @cmd = command("#{root}/bin/pg_restore",
                      opts.merge(username: uri.user,
                                 host: uri.host,

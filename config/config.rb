@@ -46,5 +46,6 @@ module Config
 
     worker_count:     5,
     worker_size:      '1X',
-    logplex_procid:   'backups'
+    logplex_procid:   'backups',
+    pg_app_name:      'transferatu'
 end
