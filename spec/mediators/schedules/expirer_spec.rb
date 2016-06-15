@@ -1,4 +1,5 @@
 require "spec_helper"
+require 'timecop'
 
 module Transferatu
   describe Mediators::Schedules::Expirer do
@@ -64,6 +65,19 @@ module Transferatu
         xfer1.reload; xfer2.reload
         expect(xfer1.deleted?).to be true
         expect(xfer2.deleted?).to be true
+      end
+
+      it "" do
+        now = Time.now
+        (1..30).each do |n|
+          Timecop.travel(now + n.days) do
+            puts "*" * 10 + " day #{n}"
+            create(:transfer, schedule: schedule, created_at: Time.now)
+            expirer = Mediators::Schedules::Expirer.new(schedule: schedule, expire_at: Time.now)
+            expirer.call
+            Transfer.all.map { |t| { created_at: t.created_at, deleted_at: t.deleted_at } }.each { |t| puts t }
+          end
+        end
       end
     end
   end

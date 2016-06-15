@@ -47,4 +47,5 @@ group :test do
   gem "factory_girl", "~> 4.0"
   gem "rack-test"
   gem "rspec"
+  gem "timecop"
 end
